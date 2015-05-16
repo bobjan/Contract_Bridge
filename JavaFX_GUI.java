@@ -5,21 +5,14 @@
  */
 package javafxapplication1;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.animation.*;
-import javafx.animation.AnimationTimer;
-import javafx.animation.FadeTransition;
-import javafx.animation.RotateTransition;
-import javafx.animation.SequentialTransition;
-import javafx.animation.Timeline;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -30,19 +23,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
-import javafx.util.Duration;
-import javafx.animation.Timeline;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 
 public class JavaFXApplication1 extends Application {
@@ -54,7 +40,7 @@ public class JavaFXApplication1 extends Application {
     Score team1 = new Score();
     Score team2 = new Score();
     Text team1Score, team2Score;
-    String[] myCards;
+    ArrayList<String> myCards;
     int myCardsLength;
 
     Player p1, p2, p3, p4;
@@ -73,8 +59,9 @@ public class JavaFXApplication1 extends Application {
         p2.drawCards();
         p3.drawCards();
         p4.drawCards();
-        myCards = new String[13];
-        myCards = p1.hand();
+        myCards = new ArrayList<> (13);
+        //myCards = p1.hand();
+        myCards.addAll(Arrays.asList(p1.hand()));
         myCardsLength = 13;
 
         //  Center Play Ground
@@ -145,12 +132,12 @@ public class JavaFXApplication1 extends Application {
         bottomCards.setAlignment(Pos.CENTER);
 
         for (int i = 0; i < 13; i++) {
-            String fileName = "file:playing_cards_images/" + myCards[i] + ".jpg";
+            String fileName = "file:playing_cards_images/" + myCards.get(i) + ".jpg";
             Image cardImage = new Image(fileName);
             ImageView imageView = new ImageView(cardImage);
             imageView.setFitHeight(140);
             imageView.setFitWidth(90);
-            imageView.setId(myCards[i]);
+            imageView.setId(myCards.get(i));
             bottomCards.getChildren().add(imageView);
             imageView.setOnMousePressed(e -> {
                 try {
@@ -189,16 +176,7 @@ public class JavaFXApplication1 extends Application {
     boolean userClicked = true;
     CurrentPlay card;
     boolean match = true;
-    
     ImageView img, img1, img2, img3;
-
-    FadeTransition ft1 = new FadeTransition(Duration.millis(1000));
-    FadeTransition ft2 = new FadeTransition(Duration.millis(1000));
-    FadeTransition ft3 = new FadeTransition(Duration.millis(1000));
-    FadeTransition ft4 = new FadeTransition(Duration.millis(1000));
-
-    final Duration period = Duration.millis(2000);
-    SequentialTransition seqT = new SequentialTransition(centerField);
 
     private void handleClickAction(MouseEvent e) throws InterruptedException {
         //  Get card from user.
@@ -206,22 +184,25 @@ public class JavaFXApplication1 extends Application {
         cardPicked = img.getId();
         
         //  Check for matching suit.
+        System.out.println(p1.getNumOfCards());
         if (player!=1) {
             if (indexOfCard(cardPicked)[0]==card.getSuit())
                 match = true;
             else{
                 for (int i=0;i<p1.getNumOfCards();i++) {
-                    if (indexOfCard(myCards[i])[0]==card.getSuit()) {
+                    if (indexOfCard(myCards.get(i))[0]==card.getSuit()) {
                         match = false;
                         System.out.println("Must play matching Suit!");
                         break;
                     }
-                    match = true;
+                    else
+                        match = true;
                 }
             }
         }
         
         while (match) {
+            myCards.remove(cardPicked);
             if (player == 1) {
                 //  Player 1
                 card = new CurrentPlay(cardPicked);
@@ -244,25 +225,17 @@ public class JavaFXApplication1 extends Application {
                 if (card.isHigher()) {
                     temp = 4;
                 }
+                
                 //  Remove Cards
                 p1.popCard(cardPicked);
                 p2.popCard(max);
                 p3.popCard(max1);
                 p4.popCard(max2);
-                // Add Cards to Center Board
                 
-
+                // Add Cards to Center Board
                 img1 = new ImageView(new Image("file:playing_cards_images/" + max + ".jpg"));
                 img2 = new ImageView(new Image("file:playing_cards_images/" + max1 + ".jpg"));
                 img3 = new ImageView(new Image("file:playing_cards_images/" + max2 + ".jpg"));
-                
-                ft2.setNode(img1);
-                ft3.setNode(img2);
-                ft4.setNode(img3);
-                 
-                seqT.getChildren().clear();
-                seqT.getChildren().addAll(ft2, ft3, ft4);
-                
                 centerField.getChildren().clear();
                 centerField.getChildren().addAll(img, img1, img2, img3);
                 
@@ -271,8 +244,7 @@ public class JavaFXApplication1 extends Application {
                 System.out.println("Player " + player + " Won!");
                 
             }
-            //seqT.play();
-            
+
             if (player == 2) {
                 if (userClicked) {
                     userClicked = !userClicked;
@@ -315,9 +287,7 @@ public class JavaFXApplication1 extends Application {
                     if (card.isHigher())
                         temp = 1;
 
-                    p1.popCard(cardPicked);
-                    
-                    seqT.getChildren().add(ft1);
+                    p1.popCard(cardPicked);                    
                     centerField.getChildren().add(img);
                     
                     player = temp;
@@ -433,6 +403,7 @@ public class JavaFXApplication1 extends Application {
             }
             if (player == 1) {
                 userClicked = true;
+                match = true;
                 break;
             }  
         }
@@ -462,6 +433,7 @@ public class JavaFXApplication1 extends Application {
                 if (Deck.stringDeck[i][j].equals(card)) {
                     result[0] = i;
                     result[1] = j;
+                    break;
                 }
             }
         }
